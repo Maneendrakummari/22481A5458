@@ -1,55 +1,47 @@
-import React, { useState, useEffect } from 'react';
-import './Styles.css'; 
-
+import React, { useState } from 'react';
+import './Styles.css';
 
 function App() {
   const [longUrl, setLongUrl] = useState('');
-  const [urls, setUrls] = useState([]);
-
-  useEffect(() => {
-    const storedUrls = JSON.parse(localStorage.getItem('shortenedUrls')) || [];
-    setUrls(storedUrls);
-  }, []);
-
-  const generateShortCode = () => {
-    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    return Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-  };
+  const [shortenedUrls, setShortenedUrls] = useState([]);
+  const [isDisabled, setIsDisabled] = useState(false);
 
   const handleShorten = () => {
-    if (!longUrl.trim()) return;
+    if (longUrl.trim() === '') return;
 
-    const shortCode = generateShortCode();
-    const shortUrl = `https://short.ly/${shortCode}`;
-    const newEntry = { original: longUrl, short: shortUrl };
+    setIsDisabled(true); // Disable inputs
 
-    const updatedUrls = [newEntry, ...urls];
-    setUrls(updatedUrls);
-    localStorage.setItem('shortenedUrls', JSON.stringify(updatedUrls));
+    const fakeShortUrl = 'https://short.ly/' + Math.random().toString(36).substring(7);
+
+    setShortenedUrls([
+      ...shortenedUrls,
+      { original: longUrl, short: fakeShortUrl }
+    ]);
+
     setLongUrl('');
+    setIsDisabled(false); // Optional: re-enable input/button if you want multiple URLs
   };
 
   return (
     <div className="container">
       <h1>URL Shortener</h1>
-      <div className="input-group">
+      <div className="input-container">
         <input
           type="text"
           placeholder="Enter long URL"
           value={longUrl}
           onChange={(e) => setLongUrl(e.target.value)}
+          disabled={isDisabled}
         />
-        <button onClick={handleShorten}>Shorten</button>
+        <button onClick={handleShorten} disabled={isDisabled}>Shorten</button>
       </div>
 
-      <div className="url-list">
-        {urls.map((url, index) => (
-          <div key={index} className="url-item">
-            <p><strong>Original:</strong> <a href={url.original} target="_blank" rel="noopener noreferrer">{url.original}</a></p>
-            <p><strong>Shortened:</strong> <a href={url.original} target="_blank" rel="noopener noreferrer">{url.short}</a></p>
-          </div>
-        ))}
-      </div>
+      {shortenedUrls.map((item, index) => (
+        <div className="url-box" key={index}>
+          <p><strong>Original:</strong> <a href={item.original} target="_blank" rel="noopener noreferrer">{item.original}</a></p>
+          <p><strong>Shortened:</strong> <a href={item.short} target="_blank" rel="noopener noreferrer">{item.short}</a></p>
+        </div>
+      ))}
     </div>
   );
 }
